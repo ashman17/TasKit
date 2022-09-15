@@ -1,15 +1,26 @@
 const eventViews = require("./event_views.js");
 
-const appHomeOpened = async ({ event, client }) => {
+const openAppHome = async ({ event, client, body }) => {
+  try {
+    refreshAppHome(client, event.user, body.team_id);
+  } catch (error) {
+    console.log(error);
+  }
+}
 
+const refreshAppHome = async (client, userId, teamId) => {
   try {
     const result = await client.views.publish({
-      user_id: event.user,
-      view: eventViews.app_home()
+      user_id: userId,
+      view: await eventViews.openAppHome(teamId)
     });
   } catch (error) {
     console.log(error);
   }
 }
 
-module.exports = { appHomeOpened };
+
+module.exports = { 
+  openAppHome,
+  refreshAppHome
+};

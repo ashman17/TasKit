@@ -1,15 +1,13 @@
-function app_home() {
-  return {
+const firebase = require("../../firebase.js");
+
+async function openAppHome(teamID) {
+  
+  const tasks = await firebase.readTaskData({teamID:teamID});
+  
+  // adding the basic app home and the create task button
+  var view  = {
     "type": "home",
     "blocks": [
-      {
-        "type": "header",
-        "text": {
-          "type": "plain_text",
-          "text": "Welcome to TasKit",
-          "emoji": true
-        }
-      },
       {
         "type": "actions",
         "elements": [
@@ -21,131 +19,8 @@ function app_home() {
               "emoji": true
             },
             "style": "primary",
-            "value": "click_me_123",
+            "value": "create-button",
             "action_id": "create-task"
-          }
-        ]
-      },
-      {
-        "type": "divider"
-      },
-      {
-        "type": "section",
-        "text": {
-          "type": "mrkdwn",
-          "text": "*Fix the Loading Bugs*"
-        }
-      },
-      {
-        "type": "context",
-        "elements": [
-          {
-            "type": "plain_text",
-            "text": "Ticket ID #A4Z65",
-            "emoji": true
-          }
-        ]
-      },
-      {
-        "type": "section",
-        "fields": [
-          {
-            "type": "mrkdwn",
-            "text": "Owner: `Robert Hendrick`"
-          },
-          {
-            "type": "mrkdwn",
-            "text": "Assigned To: `James Bond` `Alec Trevelyan`"
-          },
-          {
-            "type": "mrkdwn",
-            "text": "Status: :large_yellow_circle: `Open`"
-          },
-          {
-            "type": "mrkdwn",
-            "text": "Deadline: `17/09/2022`"
-          }
-        ]
-      },
-      {
-        "type": "divider"
-      },
-      {
-        "type": "section",
-        "text": {
-          "type": "mrkdwn",
-          "text": "*Push Code to Production*"
-        }
-      },
-      {
-        "type": "context",
-        "elements": [
-          {
-            "type": "plain_text",
-            "text": "Ticket ID #7Z34G",
-            "emoji": true
-          }
-        ]
-      },
-      {
-        "type": "section",
-        "fields": [
-          {
-            "type": "mrkdwn",
-            "text": "Owner: `Rajiv Gupta`"
-          },
-          {
-            "type": "mrkdwn",
-            "text": "Assigned To: `Ashman Mehra` `Aditya Sharma`"
-          },
-          {
-            "type": "mrkdwn",
-            "text": "Status: :large_blue_circle: `Accepted`"
-          },
-          {
-            "type": "mrkdwn",
-            "text": "Deadline: `29/10/2022`"
-          }
-        ]
-      },
-      {
-        "type": "divider"
-      },
-      {
-        "type": "section",
-        "text": {
-          "type": "mrkdwn",
-          "text": "*Add the Extra Edit Feature*"
-        }
-      },
-      {
-        "type": "context",
-        "elements": [
-          {
-            "type": "plain_text",
-            "text": "Ticket ID #8P03R",
-            "emoji": true
-          }
-        ]
-      },
-      {
-        "type": "section",
-        "fields": [
-          {
-            "type": "mrkdwn",
-            "text": "Owner: `John Doe`"
-          },
-          {
-            "type": "mrkdwn",
-            "text": "Assigned To: `Anna Fredrick`"
-          },
-          {
-            "type": "mrkdwn",
-            "text": "Status: :large_green_circle: `Completed`"
-          },
-          {
-            "type": "mrkdwn",
-            "text": "Deadline: `6/11/2022`"
           }
         ]
       },
@@ -153,9 +28,142 @@ function app_home() {
         "type": "divider"
       }
     ]
-  };
+  }
+  
+  if (tasks===null) {
+    return view;
+  }
+  
+  for (let [taskID, data] of Object.entries(tasks)) {
+    
+    var statusText = "";
+    if (data.status == "open") {
+      statusText = "`OPEN`";
+    } else if (data.status == "accepted") {
+      statusText = "`ACCEPTED`";
+    } else {
+      statusText = "`COMPLETED`";
+    }
+    
+    var priorityText = "";
+    if (data.priority == "critical") {
+      priorityText += ":red_circle:";
+    } else if (data.priority == "important") {
+      priorityText += ":large_blue_circle:";
+    } else if (data.priority == "normal") {
+      priorityText += ":large_yellow_circle:";
+    }
+    
+    // title with status and priority
+    view.blocks.push({
+			"type": "section",
+      "fields": [
+				{
+					"type": "mrkdwn",
+					"text": `${priorityText} *${data.title}*`
+				},
+        {
+					"type": "mrkdwn",
+					"text": `${statusText}`
+				}
+      ],
+      "accessory": {
+				"type": "overflow",
+				"action_id": "task-actions",
+				"options": [
+					{
+						"text": {
+							"type": "plain_text",
+							"text": ":white_check_mark: Mark Complete",
+							"emoji": true
+						},
+						"value": `complete-${taskID}`
+					},
+					{
+						"text": {
+							"type": "plain_text",
+							"text": ":page_with_curl: View details",
+							"emoji": true
+						},
+						"value": `details-${taskID}`
+					},
+					{
+						"text": {
+							"type": "plain_text",
+							"text": ":alarm_clock: Send reminder",
+							"emoji": true
+						},
+						"value": `reminder-${taskID}`
+					}
+				]
+			}
+		});
+    
+    // description
+    if (data.description) {
+      view.blocks.push({
+        "type": "context",
+        "elements": [
+          {
+            "type": "mrkdwn",
+            "text": `${data.description}`
+          }
+        ]
+      });
+    }
+    
+    var assigneeText = "";
+    if (data.assignees) {
+      assigneeText = "For "
+      for (let assignee of data.assignees) {
+        assigneeText += `<@${assignee}> `;
+      }
+    } else {
+      assigneeText = "Be the first to accept!";
+    }
+    
+    var deadlineText = "";
+    if (data.deadline) {
+      const deadline = new Date(data.deadline)
+      deadlineText = ` Due <!date^${deadline.getTime()/1000}^{date_short_pretty} |an error occured with date>`;
+    }
+    
+    
+    // task data
+    view.blocks.push({
+      "type": "section",
+			"fields": [
+				{
+					"type": "mrkdwn",
+					"text": assigneeText
+				},
+        {
+					"type": "mrkdwn",
+					"text": deadlineText
+				}
+			]
+    });
+    
+    // taskID
+    view.blocks.push({
+			"type": "context",
+			"elements": [
+				{
+					"type": "mrkdwn",
+					"text": `Ticket ID #${taskID} `
+				}
+			]
+    });
+    
+    // divider
+    view.blocks.push({
+      "type": "divider"
+    });
+  }
+  
+  return view;
 }
 
 module.exports = {
-  app_home
+  openAppHome
 };

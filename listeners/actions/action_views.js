@@ -55,22 +55,40 @@ function createTaskModal() {
       },
       {
         type: "input",
-        block_id: "description-block",
+        block_id: "deadline-date-block",
         element: {
-          type: "plain_text_input",
-          multiline: true,
-          action_id: "description-action",
+          type: "datepicker",
+          initial_date: "2022-09-15",
           placeholder: {
             type: "plain_text",
-            text: "Go for the details here",
+            text: "Select a date",
+            emoji: true,
           },
+          action_id: "deadline-date-action",
         },
         label: {
           type: "plain_text",
-          text: "Discription",
+          text: "Due Date and Time",
           emoji: true,
         },
-        optional: true,
+      },
+      {
+        type: "input",
+        block_id: "deadline-time-block",
+        element: {
+          type: "timepicker",
+          initial_time: "13:37",
+          placeholder: {
+            type: "plain_text",
+            text: "Select time",
+          },
+          action_id: "deadline-time-action",
+        },
+        label: {
+          type: "plain_text",
+          text: " ",
+          emoji: true,
+        },
       },
       {
         type: "input",
@@ -92,42 +110,6 @@ function createTaskModal() {
         optional: true,
       },
       {
-        type: "section",
-        block_id: "deadline-date-block",
-        text: {
-          type: "mrkdwn",
-          text: "*Deadline Date*",
-        },
-        accessory: {
-          type: "datepicker",
-          initial_date: "1990-04-28",
-          placeholder: {
-            type: "plain_text",
-            text: "Select a date",
-            emoji: true,
-          },
-          action_id: "deadline-date-action",
-        },
-      },
-      {
-        type: "section",
-        block_id: "deadline-time-block",
-        text: {
-          type: "mrkdwn",
-          text: "*Deadline Time*",
-        },
-        accessory: {
-          type: "timepicker",
-          initial_time: "13:37",
-          placeholder: {
-            type: "plain_text",
-            text: "Select time",
-            emoji: true,
-          },
-          action_id: "deadline-time-action",
-        },
-      },
-      {
         block_id: "priority-block",
         type: "input",
         element: {
@@ -141,7 +123,7 @@ function createTaskModal() {
             {
               text: {
                 type: "plain_text",
-                text: "Critical",
+                text: ":red_circle: Critical",
                 emoji: true,
               },
               value: "critical",
@@ -149,7 +131,7 @@ function createTaskModal() {
             {
               text: {
                 type: "plain_text",
-                text: "Important",
+                text: ":large_blue_circle: Important",
                 emoji: true,
               },
               value: "important",
@@ -157,18 +139,10 @@ function createTaskModal() {
             {
               text: {
                 type: "plain_text",
-                text: "Normal",
+                text: ":large_yellow_circle: Normal",
                 emoji: true,
               },
               value: "normal",
-            },
-            {
-              text: {
-                type: "plain_text",
-                text: "Low",
-                emoji: true,
-              },
-              value: "low",
             },
           ],
           action_id: "priority-action",
@@ -178,6 +152,25 @@ function createTaskModal() {
           text: "Priority",
           emoji: true,
         },
+      },
+      {
+        type: "input",
+        block_id: "description-block",
+        element: {
+          type: "plain_text_input",
+          multiline: true,
+          action_id: "description-action",
+          placeholder: {
+            type: "plain_text",
+            text: "Go for the details here",
+          },
+        },
+        label: {
+          type: "plain_text",
+          text: "Discription",
+          emoji: true,
+        },
+        optional: true,
       },
     ],
   };

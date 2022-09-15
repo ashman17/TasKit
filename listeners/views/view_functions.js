@@ -1,13 +1,17 @@
 const viewViews = require("./view_views.js");
-const firebase = require("../../firebase.js")
+const firebase = require("../../firebase.js");
+const eventFunctions = require("../events/event_functions.js");
 
-const taskCreate = async ({ ack, body, client, view }) => {
+// called on hitting submit in create task modal
+const createTask = async ({ ack, body, client, view, event }) => {
   
   try {
     await ack({
       response_action: 'update',
       view: viewViews.task_confirmation(),
     });
+    
+    //console.log(body);
     
     const workspace = body["team"]["id"]; 
     const channel = view["state"]["values"]["channel-block"]["channel-action"]["selected_channel"];
@@ -32,9 +36,11 @@ const taskCreate = async ({ ack, body, client, view }) => {
     };
     firebase.createTaskData(data);
     
+    eventFunctions.refreshAppHome(client, body.user.id, body.team.id);
+    
   } catch (error) {
     console.log(error);
   }
 }
 
-module.exports = { taskCreate };
+module.exports = { createTask };
