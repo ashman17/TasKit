@@ -8,12 +8,13 @@ const createTask = async ({ ack, body, client, view, event }) => {
   try {
     await ack({
       response_action: 'update',
-      view: viewViews.task_confirmation(),
+      view: viewViews.taskConfirmation(),
     });
     
-    //console.log(body);
+    console.log(body);
     
-    const workspace = body["team"]["id"]; 
+    const workspace = body["team"]["id"];
+    const owner = body["user"]["id"];
     const channel = view["state"]["values"]["channel-block"]["channel-action"]["selected_channel"];
     const title = view["state"]["values"]["title-block"]["title-action"]["value"];
     var description = view["state"]["values"]["description-block"]["description-action"]["value"];
@@ -29,14 +30,29 @@ const createTask = async ({ ack, body, client, view, event }) => {
       "workspace":workspace, 
       "channel":channel, 
       "title":title, 
-      "description":description, 
+      "description":description,
+      "owner":owner,
       "assignees":assignees, 
       "deadline":deadline, 
       "priority":priority
     };
-    firebase.createTaskData(data);
+    var taskID = firebase.createTaskData(data);
     
     eventFunctions.refreshAppHome(client, body.user.id, body.team.id);
+    
+    for (let assignee of assignees) {
+    await client.chat.postMessage(
+      viewViews.taskNotification({
+        assignee:assignee,
+        title:title, 
+        owner:owner, 
+        deadline:deadline, 
+        taskID:taskID, 
+        description:description
+      })
+    );
+      
+    }
     
   } catch (error) {
     console.log(error);

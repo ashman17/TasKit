@@ -22,11 +22,7 @@ const createTaskModal = async ({ ack, body, client }) => {
 const taskActions = async ({ack, body, payload, client}) => {
   await ack();
   
-  //console.log(value);
   const [action,taskID] = body.actions[0].selected_option.value.split("-");
-  // console.log(action);
-  // console.log(taskID);
-  console.log(body);
   
   if (action==="complete") {
     firebase.updateTaskData({
@@ -34,6 +30,53 @@ const taskActions = async ({ack, body, payload, client}) => {
       taskID:taskID,
       status:"complete"
     });
+  } 
+  else if (action=="reminder") {
+    var task = await firebase.readTaskData({
+      teamID:body.user.team_id,
+      taskID:taskID
+    });
+    console.log(task);
+    
+    var assignees = task.assignees;
+    
+    for (let assignee of assignees) {
+      try {
+        const result = await client.chat.postMessage({
+          channel: assignee,
+          text:"New task coming your way!",
+          blocks: 
+               [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "This is a mrkdwn section block :ghost: *this is bold*, and ~this is crossed out~, and <https://google.com|this is a link>"
+                  }
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Click Me",
+                        "emoji": true
+                      },
+                      "value": "click_me_123",
+                      "action_id": "actionId-0"
+                    }
+                  ]
+                }
+              ]
+        
+        });
+      }
+      catch (error) {
+        console.log(error);
+      }
+    }
   }
   
   eventFunctions.refreshAppHome(client, body.user.id, body.user.team_id);

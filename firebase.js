@@ -20,24 +20,32 @@ admin.initializeApp({
 var database = admin.database();
 
 function createTaskData(data) {
-  admin.database().ref("tasks/" + data.workspace + "/" + nanoid())
+  var taskID = nanoid();
+  admin.database().ref("tasks/" + data.workspace + "/" + taskID)
     .set({
       channel: data.channel,
       title: data.title,
       description: data.description,
       assignees: data.assignees,
+      owner: data.owner,
       deadline: data.deadline,
       priority: data.priority,
       status: "open",
     });
+  return taskID;
 }
 
 async function readTaskData(data) {
+  var ref = "";
   if (data.teamID) {
-    var recentTasksRef = admin.database().ref(`tasks/${data.teamID}`);
-    var snapshot = await recentTasksRef.get();
-    return snapshot.val();
+    ref = `tasks/${data.teamID}`
+  } if (data.taskID) {
+    ref += `/${data.taskID}`
   }
+  
+  var recentTasksRef = admin.database().ref(ref);
+  var snapshot = await recentTasksRef.get();
+  return snapshot.val();
 }
 
 async function updateTaskData(data) {

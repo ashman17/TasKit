@@ -36,13 +36,13 @@ async function openAppHome(teamID) {
   
   for (let [taskID, data] of Object.entries(tasks)) {
     
-    var statusText = "";
+    var statusText = `\`#${taskID}\`-`;
     if (data.status == "open") {
-      statusText = "`OPEN`";
+      statusText += "`OPEN`";
     } else if (data.status == "accepted") {
-      statusText = "`ACCEPTED`";
+      statusText += "`ACCEPTED`";
     } else {
-      statusText = "`COMPLETED`";
+      statusText += "`COMPLETED`";
     }
     
     var priorityText = "";
@@ -54,7 +54,24 @@ async function openAppHome(teamID) {
       priorityText += ":large_yellow_circle:";
     }
     
-    // title with status and priority
+    
+    var assigneeText = "";
+    if (data.assignees) {
+      assigneeText = "For "
+      for (let assignee of data.assignees) {
+        assigneeText += `<@${assignee}>  `;
+      }
+    } else {
+      assigneeText = "Click `•••` and become the first to accept!";
+    }
+    
+    var deadlineText = "";
+    if (data.deadline) {
+      const deadline = new Date(data.deadline)
+      deadlineText = ` Due <!date^${deadline.getTime()/1000}^{date_short_pretty} |an error occured with date>`;
+    }
+    
+    // task data
     view.blocks.push({
 			"type": "section",
       "fields": [
@@ -62,9 +79,17 @@ async function openAppHome(teamID) {
 					"type": "mrkdwn",
 					"text": `${priorityText} *${data.title}*`
 				},
-        {
+				{
 					"type": "mrkdwn",
 					"text": `${statusText}`
+				},
+				{
+					"type": "mrkdwn",
+					"text": assigneeText
+				},
+				{
+					"type": "mrkdwn",
+					"text": deadlineText
 				}
       ],
       "accessory": {
@@ -99,61 +124,20 @@ async function openAppHome(teamID) {
 			}
 		});
     
-    // description
-    if (data.description) {
-      view.blocks.push({
-        "type": "context",
-        "elements": [
-          {
-            "type": "mrkdwn",
-            "text": `${data.description}`
-          }
-        ]
-      });
-    }
     
-    var assigneeText = "";
-    if (data.assignees) {
-      assigneeText = "For "
-      for (let assignee of data.assignees) {
-        assigneeText += `<@${assignee}> `;
-      }
-    } else {
-      assigneeText = "Be the first to accept!";
-    }
+    // // description
+    // if (data.description) {
+    //   view.blocks.push({
+    //     "type": "context",
+    //     "elements": [
+    //       {
+    //         "type": "mrkdwn",
+    //         "text": `${data.description}`
+    //       }
+    //     ]
+    //   });
+    // }
     
-    var deadlineText = "";
-    if (data.deadline) {
-      const deadline = new Date(data.deadline)
-      deadlineText = ` Due <!date^${deadline.getTime()/1000}^{date_short_pretty} |an error occured with date>`;
-    }
-    
-    
-    // task data
-    view.blocks.push({
-      "type": "section",
-			"fields": [
-				{
-					"type": "mrkdwn",
-					"text": assigneeText
-				},
-        {
-					"type": "mrkdwn",
-					"text": deadlineText
-				}
-			]
-    });
-    
-    // taskID
-    view.blocks.push({
-			"type": "context",
-			"elements": [
-				{
-					"type": "mrkdwn",
-					"text": `Ticket ID #${taskID} `
-				}
-			]
-    });
     
     // divider
     view.blocks.push({
